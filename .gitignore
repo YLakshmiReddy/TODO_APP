@@ -1,6 +1,4 @@
-# Compiled Java classes
-out/
-*.class
+# Compiled Java classes (included intentionally)
 
 # API keys - keep private
 api_key.txt
