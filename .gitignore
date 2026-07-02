@@ -1,0 +1,15 @@
+# Compiled Java classes
+out/
+*.class
+
+# API keys - keep private
+api_key.txt
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db

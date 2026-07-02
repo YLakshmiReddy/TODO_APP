@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Java AI Task Planner Suite</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main class="app-shell">
+        <!-- App Header -->
+        <header class="header-row">
+            <div>
+                <h1>FocusFlow AI</h1>
+                <p class="subtitle">Premium Task Management & Productivity Assistant</p>
+            </div>
+            <div class="header-actions">
+                <button id="themeToggle" class="secondary">Dark Mode</button>
+                <div class="status-pill" id="taskSummary">0 total • 0 active</div>
+            </div>
+        </header>
+
+        <!-- View Tabs Navigation -->
+        <nav class="view-tabs">
+            <button class="tab-btn active" data-view="tasks-view">📋 Tasks</button>
+            <button class="tab-btn" data-view="focus-view">⏱️ Pomodoro</button>
+            <button class="tab-btn" data-view="dashboard-view">📊 Dashboard</button>
+            <button class="tab-btn" data-view="chat-view">💬 AI Coach</button>
+        </nav>
+
+        <!-- View 1: Task Board -->
+        <div id="tasks-view" class="app-view active">
+            <!-- New Task Creator -->
+            <section class="task-form card">
+                <div class="form-title">➕ Create New Task</div>
+                <div class="form-grid">
+                    <input id="newTaskInput" type="text" placeholder="What needs to be done?" />
+                    <textarea id="descriptionInput" rows="2" placeholder="Add details or notes..."></textarea>
+                    <input id="categoryInput" type="text" placeholder="Category (e.g. Study, Work, Home)" />
+                    <select id="prioritySelect" aria-label="Task priority">
+                        <option value="Medium">Medium Priority</option>
+                        <option value="High">High Priority</option>
+                        <option value="Low">Low Priority</option>
+                    </select>
+                    <input id="dueDateInput" type="date" aria-label="Due date" />
+                    <button id="addTaskButton">Add Task</button>
+                </div>
+            </section>
+
+            <!-- AI Task Builder -->
+            <section class="ai-generator card">
+                <div class="ai-header">
+                    <h2>✨ AI Task Decomposer</h2>
+                    <span class="badge badge-ai">Gemini AI</span>
+                </div>
+                <p class="ai-hint">Describe a complex project or situation, and AI will break it down into actionable subtasks.</p>
+                <div class="ai-input-group">
+                    <textarea id="aiSituationInput" rows="2" placeholder="e.g. 'I need to prepare for a Java midterm exam next Tuesday covering OOP, collections, and streams'"></textarea>
+                    <button id="generateAiTasksBtn">Decompose</button>
+                </div>
+                <div id="aiStatusMessage" class="ai-status"></div>
+            </section>
+
+            <!-- Search, Filters, Sort -->
+            <section class="task-extras-container card">
+                <div class="search-sort-row">
+                    <input id="searchInput" type="search" placeholder="🔍 Search tasks, categories, descriptions..." />
+                    <select id="sortSelect" aria-label="Sort tasks">
+                        <option value="custom">Sort: Drag Order</option>
+                        <option value="newest">Sort: Newest First</option>
+                        <option value="oldest">Sort: Oldest First</option>
+                        <option value="due">Sort: Due Date</option>
+                        <option value="priority">Sort: Priority</option>
+                    </select>
+                </div>
+                
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <span class="filter-label">Status:</span>
+                        <button class="filter-button active" data-filter="all">All</button>
+                        <button class="filter-button" data-filter="active">Active</button>
+                        <button class="filter-button" data-filter="completed">Completed</button>
+                    </div>
+                    <div class="filter-group">
+                        <span class="filter-label">Due:</span>
+                        <button class="date-filter active" data-date-filter="all">All Dates</button>
+                        <button class="date-filter" data-date-filter="today">Today</button>
+                        <button class="date-filter" data-date-filter="week">This Week</button>
+                        <button class="date-filter" data-date-filter="overdue">Overdue</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bulk Operations Bar -->
+            <div class="bulk-bar" id="bulkBar" style="display: none;">
+                <span id="bulkCount">0 tasks selected</span>
+                <div class="bulk-actions">
+                    <button id="bulkCompleteBtn" class="secondary">Toggle Complete</button>
+                    <button id="bulkPriorityBtn" class="secondary">Set High Priority</button>
+                    <button id="bulkDeleteBtn" class="secondary danger">Delete Selected</button>
+                </div>
+            </div>
+
+            <!-- Task List Info -->
+            <div class="task-info">
+                <span id="taskCount">0 tasks left</span>
+                <button id="selectAllBtn" class="link-btn">Select All</button>
+            </div>
+
+            <!-- Task List -->
+            <ul id="taskList" class="task-list"></ul>
+
+            <!-- General Actions -->
+            <section class="task-actions card">
+                <button id="completeAll" class="secondary">Complete All</button>
+                <button id="clearOverdue" class="secondary">Clear Overdue</button>
+                <button id="clearCompleted" class="secondary">Clear Completed</button>
+                <button id="clearAll" class="secondary danger">Clear All</button>
+                <button id="exportTasks" class="secondary">Export JSON</button>
+                <button id="importTasks" class="secondary">Import JSON</button>
+                <input id="importFileInput" type="file" accept="application/json" hidden />
+            </section>
+        </div>
+
+        <!-- View 2: Pomodoro Focus Timer -->
+        <div id="focus-view" class="app-view">
+            <section class="focus-timer-card card">
+                <h2>⏱️ Pomodoro Focus Session</h2>
+                <p class="section-desc">Select a task, start the timer, and focus. Research shows 25-minute blocks maximize retention.</p>
+                
+                <div class="focus-task-selector">
+                    <label for="focusTaskSelect">Link to Task:</label>
+                    <select id="focusTaskSelect">
+                        <option value="">-- No Linked Task (General Focus) --</option>
+                    </select>
+                </div>
+
+                <div class="timer-display-container">
+                    <svg class="timer-ring" width="220" height="220">
+                        <circle class="timer-ring-bg" cx="110" cy="110" r="95" stroke-width="8" fill="transparent"></circle>
+                        <circle class="timer-ring-progress" id="timerProgress" cx="110" cy="110" r="95" stroke-width="8" fill="transparent" stroke-dasharray="596.9" stroke-dashoffset="0"></circle>
+                    </svg>
+                    <div class="timer-text" id="timerCountdown">25:00</div>
+                </div>
+
+                <div class="timer-mode-selectors">
+                    <button class="mode-btn active" data-time="1500" data-mode="pomodoro">Pomodoro (25m)</button>
+                    <button class="mode-btn" data-time="300" data-mode="short-break">Short Break (5m)</button>
+                    <button class="mode-btn" data-time="900" data-mode="long-break">Long Break (15m)</button>
+                    <button class="mode-btn test-mode" data-time="10" data-mode="demo">Demo (10s)</button>
+                </div>
+
+                <div class="timer-controls">
+                    <button id="startTimerBtn" class="primary-btn">Start Session</button>
+                    <button id="resetTimerBtn" class="secondary">Reset</button>
+                </div>
+
+                <div class="focus-stats">
+                    <div class="focus-stat-box">
+                        <span class="stat-num" id="pomodorosCompletedCount">0</span>
+                        <span class="stat-label">Intervals Finished</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- View 3: Interactive Analytics Dashboard -->
+        <div id="dashboard-view" class="app-view">
+            <div class="dashboard-grid">
+                <!-- Stat Cards -->
+                <div class="dashboard-stats-row">
+                    <div class="stat-card card">
+                        <div class="stat-value" id="statTotalTasks">0</div>
+                        <div class="stat-label">Total Tasks</div>
+                    </div>
+                    <div class="stat-card card">
+                        <div class="stat-value success-text" id="statCompletedTasks">0</div>
+                        <div class="stat-label">Completed</div>
+                    </div>
+                    <div class="stat-card card">
+                        <div class="stat-value warning-text" id="statActiveTasks">0</div>
+                        <div class="stat-label">Active</div>
+                    </div>
+                    <div class="stat-card card">
+                        <div class="stat-value danger-text" id="statOverdueTasks">0</div>
+                        <div class="stat-label">Overdue</div>
+                    </div>
+                </div>
+
+                <!-- Completion Progress Ring -->
+                <div class="analytics-card card chart-wide">
+                    <h3>📈 Productivity Score</h3>
+                    <div class="score-container">
+                        <div class="progress-bar-large">
+                            <div class="progress-fill-large" id="dashboardProgressFill" style="width: 0%;"></div>
+                        </div>
+                        <div class="score-text" id="dashboardProgressText">0% Complete</div>
+                    </div>
+                    <p class="insights-advice" id="dashboardInsightsText">Add and complete tasks to start generating productivity metrics.</p>
+                </div>
+
+                <!-- Category Chart -->
+                <div class="analytics-card card">
+                    <h3>📁 Tasks by Category</h3>
+                    <div class="chart-container">
+                        <canvas id="categoryChart" width="300" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Priority Chart -->
+                <div class="analytics-card card">
+                    <h3>⚡ Tasks by Priority</h3>
+                    <div class="chart-container">
+                        <canvas id="priorityChart" width="300" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 4: AI Coach Chat -->
+        <div id="chat-view" class="app-view">
+            <section class="chat-card card">
+                <div class="chat-header">
+                    <h2>💬 AI Productivity Coach</h2>
+                    <span class="badge badge-ai">Gemini AI Active</span>
+                </div>
+                <p class="chat-desc">Ask the coach about task management tips, request a summary of your week, or ask how to prioritize your overdue items.</p>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message assistant">
+                        Hello! I am your AI Productivity Coach. I can analyze your tasks and suggest the optimal work strategy. Try clicking one of the suggestions below or type your own question!
+                    </div>
+                </div>
+
+                <div class="chat-suggestions">
+                    <button class="suggest-btn" data-msg="Give me a quick summary of my current task list.">📊 List Summary</button>
+                    <button class="suggest-btn" data-msg="Based on due dates and priorities, what task should I focus on first?">🔥 What first?</button>
+                    <button class="suggest-btn" data-msg="I am feeling overwhelmed. Can you give me 3 quick tips to stay focused?">💡 Overwhelmed</button>
+                </div>
+
+                <div class="chat-input-row">
+                    <input type="text" id="chatInput" placeholder="Ask your productivity coach anything..." />
+                    <button id="sendChatBtn">Send</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- App Footer Shortcuts hint -->
+        <footer class="app-footer">
+            <p class="hint">Shortcuts: <strong>Enter</strong> = Add task • <strong>Ctrl + F</strong> = Search • <strong>Ctrl + N</strong> = Focus task input • <strong>Ctrl + E</strong> = Export JSON</p>
+        </footer>
+    </main>
+    
+    <!-- Audio notification for Pomodoro timer -->
+    <audio id="successSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-200.wav" preload="auto"></audio>
+    <script src="app.js"></script>
+</body>
+</html>
+
